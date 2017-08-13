@@ -1,6 +1,10 @@
 import oauth2 as oauth
 import urllib.request as urllib
 import json
+import re
+import tweepy
+from tweepy import OAuthHandler
+from textblob import TextBlob
 
 with open('config.json', 'r') as f:
     config = json.load(f)
@@ -26,6 +30,10 @@ https_handler = urllib.HTTPSHandler(debuglevel=_debug)
 Construct, sign, and open a twitter request
 using the credentials above.
 '''
+
+
+def clean_tweet(tweet):
+    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t]) | (\w +:\ / \ / \S +)", " ", tweet).split())
 
 
 def twitterreq(url, method, parameters):
@@ -54,12 +62,32 @@ def twitterreq(url, method, parameters):
     return response
 
 
+class MyStreamListener(tweepy.StreamListener):
+    def on_status(self, status):
+        # print(status.text)
+        # create TextBlob object of passed tweet text
+        print(clean_tweet(status.text).encode('utf-8'))
+        analysis = TextBlob(clean_tweet(status.text))
+        # set sentiment
+        # if analysis.sentiment.polarity > 0:
+        #     print('positive')
+        # elif analysis.sentiment.polarity == 0:
+        #     print('neutral')
+        # else:
+        #     print('negative')
+
+
 def fetchsamples():
-    url = "https://stream.twitter.com/1.1/statuses/sample.json"
-    parameters = []
-    response = twitterreq(url, "GET", parameters)
-    for line in response:
-        print(line.strip().decode("utf-8"))
+    # attempt authentication
+    # try:
+    # create OAuthHandler object
+    auth = OAuthHandler(api_key, api_secret)
+    # set access token and secret
+    auth.set_access_token(access_token_key, access_token_secret)
+    # create tweepy API object to fetch tweets
+    myStreamListener = MyStreamListener()
+    myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
+    myStream.filter(track=['Donald Trump'])
 
 
 if __name__ == '__main__':

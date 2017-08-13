@@ -27,9 +27,8 @@ def main():
     tweetFile = open("output.txt")
     tweets = {}  # initialize an empty dictionary
     for line in tweetFile:
-        tweets.update(json.loads(line))
-    print(tweets)  # Print every (term, score) pair in the dictionary
-
+        tweets = json.loads(line)
+        print(tweets)
 
 if __name__ == '__main__':
     main()
